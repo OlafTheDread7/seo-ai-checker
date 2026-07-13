@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SEO &amp; AI Searchability Checker</title>
+    <meta
+      name="description"
+      content="Scan any website for SEO and AI-searchability. Get a score and an actionable report on what's good and what to improve."
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark">◎</span>
+        <span class="brand-name">SearchLens</span>
+      </div>
+      <p class="tagline">SEO &amp; AI Searchability Report Card</p>
+    </header>
+
+    <main>
+      <!-- Hero / input -->
+      <section class="hero" id="hero">
+        <h1>Is your site ready to be <span class="grad">found &amp; cited</span>?</h1>
+        <p class="sub">
+          Enter a URL to grade its traditional SEO <em>and</em> how well AI answer
+          engines like ChatGPT, Perplexity &amp; Gemini can read and cite it.
+        </p>
+
+        <form id="scan-form" class="scan-form" autocomplete="off">
+          <div class="input-wrap">
+            <span class="input-icon">🔗</span>
+            <input
+              type="text"
+              id="url"
+              name="url"
+              placeholder="example.com"
+              spellcheck="false"
+              required
+            />
+          </div>
+          <button type="submit" id="scan-btn">
+            <span class="btn-label">Scan site</span>
+          </button>
+        </form>
+
+        <div class="examples">
+          Try:
+          <button class="chip" data-url="stripe.com">stripe.com</button>
+          <button class="chip" data-url="wikipedia.org">wikipedia.org</button>
+          <button class="chip" data-url="news.ycombinator.com">news.ycombinator.com</button>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+      </section>
+
+      <!-- Loading -->
+      <section id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p id="loading-text">Fetching the page…</p>
+      </section>
+
+      <!-- Results -->
+      <section id="results" class="results hidden"></section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Static-HTML analysis — checks what a crawler sees on first load.
+        Not affiliated with any search engine.
+      </p>
+    </footer>
+
+    <template id="tpl-results">
+      <div class="report-head">
+        <div class="score-block">
+          <div class="gauge">
+            <svg viewBox="0 0 120 120" class="gauge-svg">
+              <circle class="gauge-track" cx="60" cy="60" r="52" />
+              <circle class="gauge-fill" cx="60" cy="60" r="52" />
+            </svg>
+            <div class="gauge-center">
+              <span class="gauge-score">0</span>
+              <span class="gauge-grade"></span>
+            </div>
+          </div>
+          <div class="score-meta">
+            <h2>Overall score</h2>
+            <p class="scanned-url"></p>
+            <div class="pill-row">
+              <span class="pill pill-pass"><b class="c-pass">0</b> passed</span>
+              <span class="pill pill-warn"><b class="c-warn">0</b> to improve</span>
+              <span class="pill pill-fail"><b class="c-fail">0</b> failing</span>
+            </div>
+          </div>
+        </div>
+        <div class="cat-bars"></div>
+      </div>
+
+      <div class="top-fixes">
+        <h3>🎯 Top priority fixes</h3>
+        <ol class="fixes-list"></ol>
+      </div>
+
+      <div class="categories"></div>
+
+      <div class="rescan">
+        <button id="rescan-btn">Scan another site</button>
+      </div>
+    </template>
+  </body>
+  <script src="/app.js"></script>
+</html>

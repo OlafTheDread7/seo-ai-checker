@@ -8,6 +8,44 @@ The server fetches the page's HTML (avoiding browser CORS limits), parses it wit
 Cheerio, and also pulls `robots.txt`, `sitemap.xml`, and `llms.txt` to grade the
 site across four weighted categories.
 
+## Two scan modes
+
+- **Whole site (default)** — discovers pages from the sitemap and by following
+  same-origin links (bounded to 25 pages), scans each, and streams live progress.
+  The report aggregates every issue **across the pages it affects**
+  (e.g. "Missing meta description — affects 12 pages"), lists each page's score,
+  and builds a single site-wide fix prompt. Site-wide issues (HTTPS, robots.txt,
+  sitemap, llms.txt, AI-crawler access) are flagged as such rather than repeated
+  per page.
+- **Single page** — untick "Scan the whole site" to audit just the one URL.
+
+Either way, the **Fix-it prompt for Claude** aggregates the flagged items into a
+copy-to-clipboard prompt (with an optional toggle to include passing checks as a
+full audit record).
+
+## Competitor benchmark
+
+From any report, **Benchmark against competitors** compares your SEO and AI
+searchability against rivals:
+
+- **Auto-discover** — derives your site's topic keywords from its title, searches
+  the web (DuckDuckGo Lite → HTML → Bing, whichever responds), and scans the top
+  distinct domains. This is best-effort: keyless web search gets rate-limited and
+  keyword results are imperfect.
+- **Manual** — enter competitor URLs (comma-separated) to compare exactly who you
+  choose. This is the reliable path and always available.
+
+The result is a side-by-side score table (overall + each category, column leaders
+highlighted), plus **takeaways** and an **opportunities** list — specific things
+competitors do that your site doesn't (e.g. "2/2 competitors have Semantic
+HTML5 — you fall short").
+
+It also generates a **competitor-aware fix prompt** to copy into Claude. Unlike
+the plain fix prompt, it splits the work into **Priority 1: competitive gaps**
+(checks rivals pass that you don't — each with the concrete thing a named
+competitor does, to emulate) and **Priority 2: your other issues**. So Claude
+doesn't just fix your site, it closes the gap on named competitors.
+
 ## What it checks
 
 **🔍 SEO Fundamentals** — title tag, meta description, H1, heading structure,
@@ -26,16 +64,26 @@ ease), internal linking, and descriptive anchor text.
 
 Scores are weighted: SEO 30%, AI 30%, Technical 20%, Content 20%.
 
-## Run it
+## Run it (local, just for you)
+
+**Easiest — double-click `Start SearchLens.bat`.**
+It installs dependencies the first time, starts the server, and opens
+http://localhost:3000 in your browser. Leave the black window open while you use
+it; close it to stop the app.
+
+**Or from a terminal:**
 
 ```bash
-npm install
+npm install   # first time only
 npm start
 ```
 
 Then open **http://localhost:3000** and enter a URL.
 
-To change the port: `PORT=8080 npm start`.
+To use a different port: `PORT=8080 npm start`.
+
+Runs entirely on your machine — nothing is uploaded or shared, and the only
+outbound requests are to the site you're scanning.
 
 ## How it works
 

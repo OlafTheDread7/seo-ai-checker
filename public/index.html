@@ -3,12 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SEO &amp; AI Searchability Checker</title>
+    <title>Search Visibility Checker · RVA Digital Works</title>
     <meta
       name="description"
-      content="Scan any website for SEO and AI-searchability. Get a score and an actionable report on what's good and what to improve."
+      content="Scan any website for SEO and AI-searchability. Get a score and an actionable report on what's good and what to improve. By RVA Digital Works."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
     />
     <link rel="stylesheet" href="/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   </head>
   <body>
     <div class="bg-orb orb-1"></div>
@@ -16,10 +24,16 @@
 
     <header class="site-header">
       <div class="brand">
-        <span class="brand-mark">◎</span>
-        <span class="brand-name">SearchLens</span>
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="34" height="34">
+            <rect x="1" y="1" width="38" height="38" rx="9" fill="#14b8a6" />
+            <path d="M11 24 L20 13 L29 24" fill="none" stroke="#0d1b2a"
+              stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="brand-name">RVA Digital Works</span>
       </div>
-      <p class="tagline">SEO &amp; AI Searchability Report Card</p>
+      <p class="tagline">Search Visibility Report Card &mdash; SEO &amp; AI Searchability</p>
     </header>
 
     <main>
@@ -48,6 +62,14 @@
           </button>
         </form>
 
+        <div class="site-toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="whole-site" checked />
+            <span class="switch"></span>
+            <span class="toggle-label">Scan the whole site (crawl up to 25 pages)</span>
+          </label>
+        </div>
+
         <div class="examples">
           Try:
           <button class="chip" data-url="stripe.com">stripe.com</button>
@@ -71,9 +93,49 @@
     <footer class="site-footer">
       <p>
         Static-HTML analysis — checks what a crawler sees on first load.
+        A tool by <a href="https://rvadigitalworks.com" target="_blank" rel="noopener">RVA Digital Works</a>.
         Not affiliated with any search engine.
       </p>
     </footer>
+
+    <!-- Branded PDF report modal -->
+    <div id="pdf-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pdf-modal-title">
+      <div class="modal-card">
+        <button class="modal-close" id="pdf-close" type="button" aria-label="Close">&times;</button>
+        <div class="modal-brand">
+          <span class="modal-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" width="30" height="30">
+              <rect x="1" y="1" width="38" height="38" rx="9" fill="#14b8a6" />
+              <path d="M11 24 L20 13 L29 24" fill="none" stroke="#0d1b2a"
+                stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span>RVA Digital Works</span>
+        </div>
+        <h3 id="pdf-modal-title">Generate branded PDF report</h3>
+        <p class="modal-sub">A polished, client-ready report of these findings — your branding, ready to send.</p>
+
+        <label class="modal-label" for="pdf-client">Prepared for <span class="modal-opt">(client or business name)</span></label>
+        <input class="modal-input" id="pdf-client" type="text" placeholder="e.g. Mullaney Masonry" spellcheck="false" />
+
+        <label class="modal-label" for="pdf-contact">Prepared by <span class="modal-opt">(shown in header)</span></label>
+        <input class="modal-input" id="pdf-contact" type="text" value="RVA Digital Works · jake@rvadigitalworks.com" spellcheck="false" />
+
+        <label class="modal-label" for="pdf-notes">Cover note <span class="modal-opt">(optional, appears on page 1)</span></label>
+        <textarea class="modal-input" id="pdf-notes" rows="3" placeholder="A sentence or two to set up the report for your client…"></textarea>
+
+        <label class="toggle modal-toggle">
+          <input type="checkbox" id="pdf-include-pass" />
+          <span class="switch"></span>
+          <span class="toggle-label">Include passing checks (full audit record)</span>
+        </label>
+
+        <div class="modal-actions">
+          <button class="modal-btn-ghost" id="pdf-cancel" type="button">Cancel</button>
+          <button class="modal-btn" id="pdf-generate" type="button">Download PDF</button>
+        </div>
+      </div>
+    </div>
 
     <template id="tpl-results">
       <div class="report-head">
@@ -106,6 +168,26 @@
         <ol class="fixes-list"></ol>
       </div>
 
+      <div class="fix-prompt">
+        <div class="fix-prompt-head">
+          <div class="fix-prompt-title">
+            <h3>🛠️ Fix-it prompt for Claude</h3>
+            <span class="fix-prompt-count"></span>
+          </div>
+          <button class="copy-btn" type="button">Copy to clipboard</button>
+        </div>
+        <p class="fix-prompt-sub">
+          A ready-to-use prompt covering every flagged issue. Paste it into
+          Claude (e.g. Cowork) to fix them in your site's code.
+        </p>
+        <label class="toggle include-pass">
+          <input type="checkbox" class="include-pass-toggle" />
+          <span class="switch"></span>
+          <span class="toggle-label">Include passing checks (full audit record)</span>
+        </label>
+        <pre class="fix-prompt-text"></pre>
+      </div>
+
       <div class="categories"></div>
 
       <div class="rescan">
@@ -114,4 +196,5 @@
     </template>
   </body>
   <script src="/app.js"></script>
+  <script src="/report-pdf.js"></script>
 </html>

@@ -35,10 +35,19 @@ document.querySelectorAll('.chip').forEach((chip) => {
   });
 });
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const url = urlInput.value.trim();
   if (!url) return;
+
+  const wholeSite = wholeSiteInput && wholeSiteInput.checked;
+
+  // Public mode: a whole-site scan is the gated, heavier path — capture an
+  // email before running it. Single-page scans stay free and instant.
+  if (wholeSite && window.requireLeadEmail) {
+    const ok = await window.requireLeadEmail({ url, scanType: 'site' });
+    if (!ok) return;
+  }
 
   errorBox.classList.add('hidden');
   results.classList.add('hidden');
@@ -47,7 +56,7 @@ form.addEventListener('submit', (e) => {
   loading.classList.remove('hidden');
   scanBtn.disabled = true;
 
-  if (wholeSiteInput && wholeSiteInput.checked) runSiteScan(url);
+  if (wholeSite) runSiteScan(url);
   else runSingleScan(url);
 });
 
@@ -267,7 +276,8 @@ function renderReport(data) {
   results.appendChild(node);
   results.classList.remove('hidden');
 
-  if (window.mountReportPdf) window.mountReportPdf('single', data);
+  if (window.publicGateReport) window.publicGateReport('single', data);
+  else if (window.mountReportPdf) window.mountReportPdf('single', data);
 
   // Animate gauge
   const gaugeFill = results.querySelector('.gauge-fill');
@@ -487,7 +497,8 @@ function renderSiteReport(data) {
   results.appendChild(container);
   results.classList.remove('hidden');
 
-  if (window.mountReportPdf) window.mountReportPdf('site', data);
+  if (window.publicGateReport) window.publicGateReport('site', data);
+  else if (window.mountReportPdf) window.mountReportPdf('site', data);
 
   // Animate gauge
   const gaugeFill = results.querySelector('.gauge-fill');

@@ -1,0 +1,177 @@
+/* RVA Digital Works — public lead-gate layer for the Search Visibility tool.
+   Active only when the server reports PUBLIC_MODE. It (1) lets a single-page
+   scan run free but hides the full issue list + PDF behind an email, (2) requires
+   an email before a whole-site scan runs, and (3) adds a hire-us CTA to results.
+   In internal mode this file does nothing. */
+(function () {
+  'use strict';
+
+  window.PUBLIC_MODE = false;
+  const QUOTE_URL = 'https://rvadigitalworks.com/#contact';
+
+  // Discover runtime mode. Fire immediately; default stays false until resolved.
+  fetch('/api/config')
+    .then((r) => r.json())
+    .then((c) => { window.PUBLIC_MODE = !!c.publicMode; })
+    .catch(() => {});
+
+  function issueCount(type, data) {
+    if (type === 'site') return (data.issues || []).length;
+    return (data.counts?.warn || 0) + (data.counts?.fail || 0);
+  }
+  function scannedUrl(type, data) {
+    return type === 'site' ? data.origin : (data.finalUrl || data.url);
+  }
+
+  async function postLead(payload) {
+    try {
+      const r = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const j = await r.json();
+      return r.ok ? { ok: true } : { ok: false, error: j.error };
+    } catch {
+      return { ok: false, error: 'Network error — please try again.' };
+    }
+  }
+
+  // ---- CTA block appended to every result ---------------------------------
+  function makeCta() {
+    const el = document.createElement('div');
+    el.className = 'hire-cta';
+    el.innerHTML = `
+      <div class="hire-cta-inner">
+        <div>
+          <h3>Want these issues fixed — for real?</h3>
+          <p>RVA Digital Works builds and optimizes websites so they rank on Google
+             <em>and</em> get read and cited by AI answer engines. Get a free, no-pressure quote.</p>
+        </div>
+        <a class="hire-cta-btn" href="${QUOTE_URL}" target="_blank" rel="noopener">Get a free quote &rarr;</a>
+      </div>`;
+    return el;
+  }
+
+  // ---- Gate a completed single/site report --------------------------------
+  // Hides the detail sections and shows an email unlock card. On unlock: reveal,
+  // mount the PDF button, and append the CTA.
+  window.publicGateReport = function (type, data) {
+    // Always append the CTA (visible before and after unlock).
+    if (!window.PUBLIC_MODE) {
+      if (window.mountReportPdf) window.mountReportPdf(type, data);
+      appendCta();
+      return;
+    }
+
+    const root = document.getElementById('results');
+    const head = root.querySelector('.report-head');
+    const detailSelectors = ['.top-fixes', '.fix-prompt', '.categories', '.pages-scanned', '.site-issues', '.competitor-cta', '.rescan'];
+    const hidden = [];
+    detailSelectors.forEach((sel) => root.querySelectorAll(sel).forEach((n) => { n.style.display = 'none'; hidden.push(n); }));
+
+    const n = issueCount(type, data);
+    const gate = document.createElement('div');
+    gate.className = 'lead-gate';
+    gate.innerHTML = `
+      <div class="lead-gate-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="34" height="34">
+          <rect x="1" y="1" width="38" height="38" rx="9" fill="#14b8a6"/>
+          <path d="M11 24 L20 13 L29 24" fill="none" stroke="#0d1b2a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3>${n > 0 ? `We found ${n} thing${n === 1 ? '' : 's'} to improve` : 'See your full report'}</h3>
+      <p>Enter your email to unlock the full issue list${n > 0 ? ', prioritized fixes,' : ''} and download your branded PDF report.</p>
+      <form class="lead-form">
+        <input type="email" class="lead-email" placeholder="you@business.com" required autocomplete="email" spellcheck="false" />
+        <button type="submit" class="lead-btn">Unlock full report</button>
+      </form>
+      <p class="lead-fine">No spam. We'll only reach out if you ask us to.</p>
+      <div class="lead-err"></div>`;
+    head.insertAdjacentElement('afterend', gate);
+
+    const form = gate.querySelector('.lead-form');
+    const errEl = gate.querySelector('.lead-err');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = gate.querySelector('.lead-email').value.trim();
+      const btn = gate.querySelector('.lead-btn');
+      btn.disabled = true; btn.textContent = 'Unlocking…';
+      const res = await postLead({
+        email, url: scannedUrl(type, data), scanType: type,
+        score: data.overall, grade: data.grade,
+      });
+      if (!res.ok) {
+        errEl.textContent = res.error || 'Something went wrong — try again.';
+        btn.disabled = false; btn.textContent = 'Unlock full report';
+        return;
+      }
+      gate.remove();
+      hidden.forEach((el) => { el.style.display = ''; });
+      if (window.mountReportPdf) window.mountReportPdf(type, data);
+      appendCta();
+      const target = root.querySelector('.top-fixes, .site-issues, .categories');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    function _noop() {}
+    appendCta(); // CTA shows even before unlock
+  };
+
+  function appendCta() {
+    const root = document.getElementById('results');
+    if (!root || root.querySelector('.hire-cta')) return;
+    const rescan = root.querySelector('.rescan');
+    if (rescan) rescan.parentNode.insertBefore(makeCta(), rescan);
+    else root.appendChild(makeCta());
+  }
+
+  // ---- Require an email before a heavy (whole-site) scan ------------------
+  // Returns a promise resolving true (proceed) or false (cancelled).
+  window.requireLeadEmail = function ({ url, scanType }) {
+    if (!window.PUBLIC_MODE) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      const ov = document.createElement('div');
+      ov.className = 'modal-overlay';
+      ov.innerHTML = `
+        <div class="modal-card lead-modal">
+          <button class="modal-close" type="button" aria-label="Close">&times;</button>
+          <div class="modal-brand">
+            <svg viewBox="0 0 40 40" width="26" height="26"><rect x="1" y="1" width="38" height="38" rx="9" fill="#14b8a6"/><path d="M11 24 L20 13 L29 24" fill="none" stroke="#0d1b2a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>RVA Digital Works</span>
+          </div>
+          <h3>Run a full-site scan</h3>
+          <p class="modal-sub">Enter your email and we'll scan up to 25 pages, then unlock the full report and branded PDF.</p>
+          <form class="lead-form">
+            <input type="email" class="lead-email modal-input" placeholder="you@business.com" required autocomplete="email" spellcheck="false" />
+            <div class="modal-actions">
+              <button type="button" class="modal-btn-ghost lead-cancel">Cancel</button>
+              <button type="submit" class="modal-btn">Scan my site</button>
+            </div>
+          </form>
+          <div class="lead-err"></div>
+        </div>`;
+      document.body.appendChild(ov);
+      const close = (val) => { ov.remove(); resolve(val); };
+      ov.querySelector('.modal-close').addEventListener('click', () => close(false));
+      ov.querySelector('.lead-cancel').addEventListener('click', () => close(false));
+      ov.addEventListener('click', (e) => { if (e.target === ov) close(false); });
+      const form = ov.querySelector('.lead-form');
+      const errEl = ov.querySelector('.lead-err');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = ov.querySelector('.lead-email').value.trim();
+        const btn = form.querySelector('.modal-btn');
+        btn.disabled = true; btn.textContent = 'Starting…';
+        const res = await postLead({ email, url, scanType });
+        if (!res.ok) {
+          errEl.textContent = res.error || 'Something went wrong — try again.';
+          btn.disabled = false; btn.textContent = 'Scan my site';
+          return;
+        }
+        close(true);
+      });
+      setTimeout(() => ov.querySelector('.lead-email').focus(), 40);
+    });
+  };
+})();

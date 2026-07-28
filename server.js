@@ -24,10 +24,78 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// PUBLIC_MODE turns on lead-gating, rate limiting, and the hire-us CTA for the
+// public deployment. Left off, the tool runs fully open for internal use.
+const PUBLIC_MODE = /^(1|true|yes)$/i.test(process.env.PUBLIC_MODE || '');
+const WEB3FORMS_KEY = process.env.WEB3FORMS_KEY || '';
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/api/scan', async (req, res) => {
+// Lightweight in-memory rate limiter (per IP, sliding window). Protects server
+// cost and discourages abuse on the public instance. No external dependency.
+function rateLimiter({ windowMs, max }) {
+  const hits = new Map();
+  return (req, res, next) => {
+    if (!PUBLIC_MODE) return next();
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown')
+      .toString().split(',')[0].trim();
+    const now = Date.now();
+    const arr = (hits.get(ip) || []).filter((t) => now - t < windowMs);
+    if (arr.length >= max) {
+      const retry = Math.ceil((windowMs - (now - arr[0])) / 1000);
+      res.setHeader('Retry-After', retry);
+      return res.status(429).json({
+        error: `You've reached the free scan limit. Try again in ${Math.ceil(retry / 60)} minute(s), or contact RVA Digital Works for a full audit.`,
+      });
+    }
+    arr.push(now);
+    hits.set(ip, arr);
+    // opportunistic cleanup
+    if (hits.size > 5000) for (const [k, v] of hits) if (!v.some((t) => now - t < windowMs)) hits.delete(k);
+    next();
+  };
+}
+
+const scanLimiter = rateLimiter({ windowMs: 60 * 60 * 1000, max: 10 }); // 10 single scans/hr
+const heavyLimiter = rateLimiter({ windowMs: 60 * 60 * 1000, max: 4 }); // 4 site/competitor scans/hr
+
+// Expose runtime config to the frontend so it can toggle the gate + CTA.
+app.get('/api/config', (req, res) => {
+  res.json({ publicMode: PUBLIC_MODE });
+});
+
+// Lead capture: forwards the visitor's email + what they scanned to Jake via
+// Web3Forms (so it lands in his inbox). Never blocks the user experience.
+app.post('/api/lead', async (req, res) => {
+  const { email, url, scanType, score, grade } = req.body || {};
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+  if (WEB3FORMS_KEY) {
+    try {
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `New Search Visibility lead — ${email}`,
+          from_name: 'RVA Digital Works — Search Visibility Tool',
+          email,
+          scanned_site: url || '(unknown)',
+          scan_type: scanType || 'single',
+          score: score != null ? `${score}/100 (grade ${grade || '?'})` : 'n/a',
+        }),
+      });
+    } catch (err) {
+      console.error('Lead forward failed:', err);
+      // Swallow — we still let the user through.
+    }
+  }
+  res.json({ ok: true });
+});
+
+app.post('/api/scan', scanLimiter, async (req, res) => {
   let target;
   try {
     target = normalizeUrl(req.body?.url);
@@ -64,7 +132,7 @@ app.post('/api/scan', async (req, res) => {
 
 // Whole-site scan. Streams progress via Server-Sent Events so the UI can show
 // "Scanning 7 of 24…" and then a final aggregated report.
-app.get('/api/scan-site', async (req, res) => {
+app.get('/api/scan-site', heavyLimiter, async (req, res) => {
   let target;
   try {
     target = normalizeUrl(req.query.url);
@@ -108,7 +176,7 @@ app.get('/api/scan-site', async (req, res) => {
 
 // Competitor benchmark. Analyzes the target homepage, discovers competitors via
 // a topic search, scans each competitor's homepage, and streams progress.
-app.get('/api/competitors', async (req, res) => {
+app.get('/api/competitors', heavyLimiter, async (req, res) => {
   let target;
   try {
     target = normalizeUrl(req.query.url);

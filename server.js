@@ -60,53 +60,19 @@ function rateLimiter({ windowMs, max }) {
 const scanLimiter = rateLimiter({ windowMs: 60 * 60 * 1000, max: 10 }); // 10 single scans/hr
 const heavyLimiter = rateLimiter({ windowMs: 60 * 60 * 1000, max: 4 }); // 4 site/competitor scans/hr
 
-// Expose runtime config to the frontend so it can toggle the gate + CTA.
+// Expose runtime config to the frontend. In public mode we also hand the
+// Web3Forms key to the browser, because Web3Forms only accepts submissions
+// client-side (server-side POSTs are blocked on the free plan). The key is a
+// public form key by design — safe to expose.
 app.get('/api/config', (req, res) => {
-  res.json({ publicMode: PUBLIC_MODE });
+  res.json({ publicMode: PUBLIC_MODE, web3formsKey: PUBLIC_MODE ? WEB3FORMS_KEY : '' });
 });
 
-// Lead capture: forwards the visitor's email + what they scanned to Jake via
-// Web3Forms (so it lands in his inbox). Never blocks the user experience.
-app.post('/api/lead', async (req, res) => {
-  const { email, url, scanType, score, grade } = req.body || {};
-  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return res.status(400).json({ error: 'Please enter a valid email address.' });
-  }
-  if (!WEB3FORMS_KEY) {
-    console.warn('[lead] WEB3FORMS_KEY is not set — captured', email, 'but no email was sent.');
-  } else {
-    try {
-      const wr = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          // Present the request as coming from the site's own domain, so a
-          // domain-restricted Web3Forms key accepts this server-side submission.
-          Origin: 'https://rvadigitalworks.com',
-          Referer: 'https://rvadigitalworks.com/tools',
-        },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `New Search Visibility lead — ${email}`,
-          from_name: 'RVA Digital Works — Search Visibility Tool',
-          email,
-          scanned_site: url || '(unknown)',
-          scan_type: scanType || 'single',
-          score: score != null ? `${score}/100 (grade ${grade || '?'})` : 'n/a',
-        }),
-      });
-      const wj = await wr.json().catch(() => ({}));
-      if (wr.ok && wj.success) {
-        console.log('[lead] forwarded OK:', email, '(scanned', url || '?', ')');
-      } else {
-        console.error('[lead] Web3Forms rejected:', wr.status, wj.message || '(no message)');
-      }
-    } catch (err) {
-      console.error('[lead] forward threw:', err.message);
-      // Swallow — we still let the user through.
-    }
-  }
+// Lightweight server-side log of captured leads (the actual email is sent from
+// the browser via Web3Forms). Gives visibility in the Railway logs.
+app.post('/api/lead', (req, res) => {
+  const { email, url, scanType } = req.body || {};
+  if (email) console.log('[lead]', email, '· scanned', url || '?', '·', scanType || 'single');
   res.json({ ok: true });
 });
 

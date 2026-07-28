@@ -7,13 +7,15 @@
   'use strict';
 
   window.PUBLIC_MODE = false;
+  window.__W3F_KEY = '';
   const QUOTE_URL = 'https://rvadigitalworks.com/#contact';
 
-  // Discover runtime mode. Fire immediately; default stays false until resolved.
+  // Discover runtime mode + the Web3Forms key. Fire immediately.
   fetch('/api/config')
     .then((r) => r.json())
     .then((c) => {
       window.PUBLIC_MODE = !!c.publicMode;
+      window.__W3F_KEY = c.web3formsKey || '';
       if (window.PUBLIC_MODE) stripPaidFeatures();
     })
     .catch(() => {});
@@ -41,18 +43,38 @@
     return type === 'site' ? data.origin : (data.finalUrl || data.url);
   }
 
+  // Send the lead from the browser (Web3Forms only accepts client-side calls on
+  // the free plan). Also ping the server for a Railway-log record. Email delivery
+  // is best-effort — we never block the visitor from seeing their report over it.
   async function postLead(payload) {
-    try {
-      const r = await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const j = await r.json();
-      return r.ok ? { ok: true } : { ok: false, error: j.error };
-    } catch {
-      return { ok: false, error: 'Network error — please try again.' };
+    const key = window.__W3F_KEY;
+    // Server-side log record (fire-and-forget).
+    fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+    if (key) {
+      try {
+        await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: key,
+            subject: `New Search Visibility lead — ${payload.email}`,
+            from_name: 'RVA Digital Works — Search Visibility Tool',
+            email: payload.email,
+            scanned_site: payload.url || '(unknown)',
+            scan_type: payload.scanType || 'single',
+            score: payload.score != null ? `${payload.score}/100 (grade ${payload.grade || '?'})` : 'n/a',
+          }),
+        });
+      } catch {
+        /* best-effort — still unlock */
+      }
     }
+    return { ok: true };
   }
 
   // ---- CTA block appended to every result ---------------------------------

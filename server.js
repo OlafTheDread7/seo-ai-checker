@@ -72,11 +72,13 @@ app.post('/api/lead', async (req, res) => {
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
-  if (WEB3FORMS_KEY) {
+  if (!WEB3FORMS_KEY) {
+    console.warn('[lead] WEB3FORMS_KEY is not set — captured', email, 'but no email was sent.');
+  } else {
     try {
-      await fetch('https://api.web3forms.com/submit', {
+      const wr = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
           subject: `New Search Visibility lead — ${email}`,
@@ -87,8 +89,14 @@ app.post('/api/lead', async (req, res) => {
           score: score != null ? `${score}/100 (grade ${grade || '?'})` : 'n/a',
         }),
       });
+      const wj = await wr.json().catch(() => ({}));
+      if (wr.ok && wj.success) {
+        console.log('[lead] forwarded OK:', email, '(scanned', url || '?', ')');
+      } else {
+        console.error('[lead] Web3Forms rejected:', wr.status, wj.message || '(no message)');
+      }
     } catch (err) {
-      console.error('Lead forward failed:', err);
+      console.error('[lead] forward threw:', err.message);
       // Swallow — we still let the user through.
     }
   }

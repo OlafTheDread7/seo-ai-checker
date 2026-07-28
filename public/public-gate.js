@@ -14,19 +14,19 @@
     .then((r) => r.json())
     .then((c) => {
       window.PUBLIC_MODE = !!c.publicMode;
-      if (window.PUBLIC_MODE) stripFixPrompts();
+      if (window.PUBLIC_MODE) stripPaidFeatures();
     })
     .catch(() => {});
 
-  // In public mode the "Fix-it prompt for Claude" is removed entirely — we sell
-  // the fix, we don't hand it out. This strips it from the single-page report,
-  // the whole-site report, AND the competitor view (which builds its own copy),
-  // now and whenever new results render.
-  function stripFixPrompts() {
-    const strip = (el) => el && el.querySelectorAll('.fix-prompt').forEach((n) => n.remove());
+  // In public mode we remove the features we sell rather than give away: the
+  // "Fix-it prompt for Claude" and the branded PDF download button. This strips
+  // them from the single-page report, the whole-site report, AND the competitor
+  // view (which builds its own), now and whenever new results render.
+  function stripPaidFeatures() {
+    const strip = (el) => el && el.querySelectorAll('.fix-prompt, .pdf-cta').forEach((n) => n.remove());
     const results = document.getElementById('results');
     if (!results) {
-      document.addEventListener('DOMContentLoaded', stripFixPrompts, { once: true });
+      document.addEventListener('DOMContentLoaded', stripPaidFeatures, { once: true });
       return;
     }
     strip(results);
@@ -99,7 +99,7 @@
         </svg>
       </div>
       <h3>${n > 0 ? `We found ${n} thing${n === 1 ? '' : 's'} to improve` : 'See your full report'}</h3>
-      <p>Enter your email to unlock the full issue list${n > 0 ? ', prioritized fixes,' : ''} and download your branded PDF report.</p>
+      <p>Enter your email to unlock the full issue list${n > 0 ? ' and prioritized, plain-English fixes' : ''}.</p>
       <form class="lead-form">
         <input type="email" class="lead-email" placeholder="you@business.com" required autocomplete="email" spellcheck="false" />
         <button type="submit" class="lead-btn">Unlock full report</button>
@@ -126,7 +126,6 @@
       }
       gate.remove();
       hidden.forEach((el) => { el.style.display = ''; });
-      if (window.mountReportPdf) window.mountReportPdf(type, data);
       appendCta();
       const target = root.querySelector('.top-fixes, .site-issues, .categories');
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -159,7 +158,7 @@
             <span>RVA Digital Works</span>
           </div>
           <h3>Run a full-site scan</h3>
-          <p class="modal-sub">Enter your email and we'll scan up to 25 pages, then unlock the full report and branded PDF.</p>
+          <p class="modal-sub">Enter your email and we'll scan up to 25 pages, then unlock the full report.</p>
           <form class="lead-form">
             <input type="email" class="lead-email modal-input" placeholder="you@business.com" required autocomplete="email" spellcheck="false" />
             <div class="modal-actions">

@@ -78,7 +78,14 @@ app.post('/api/lead', async (req, res) => {
     try {
       const wr = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          // Present the request as coming from the site's own domain, so a
+          // domain-restricted Web3Forms key accepts this server-side submission.
+          Origin: 'https://rvadigitalworks.com',
+          Referer: 'https://rvadigitalworks.com/tools',
+        },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
           subject: `New Search Visibility lead — ${email}`,

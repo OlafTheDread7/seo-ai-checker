@@ -12,8 +12,26 @@
   // Discover runtime mode. Fire immediately; default stays false until resolved.
   fetch('/api/config')
     .then((r) => r.json())
-    .then((c) => { window.PUBLIC_MODE = !!c.publicMode; })
+    .then((c) => {
+      window.PUBLIC_MODE = !!c.publicMode;
+      if (window.PUBLIC_MODE) stripFixPrompts();
+    })
     .catch(() => {});
+
+  // In public mode the "Fix-it prompt for Claude" is removed entirely — we sell
+  // the fix, we don't hand it out. This strips it from the single-page report,
+  // the whole-site report, AND the competitor view (which builds its own copy),
+  // now and whenever new results render.
+  function stripFixPrompts() {
+    const strip = (el) => el && el.querySelectorAll('.fix-prompt').forEach((n) => n.remove());
+    const results = document.getElementById('results');
+    if (!results) {
+      document.addEventListener('DOMContentLoaded', stripFixPrompts, { once: true });
+      return;
+    }
+    strip(results);
+    new MutationObserver(() => strip(results)).observe(results, { childList: true, subtree: true });
+  }
 
   function issueCount(type, data) {
     if (type === 'site') return (data.issues || []).length;
@@ -66,7 +84,7 @@
 
     const root = document.getElementById('results');
     const head = root.querySelector('.report-head');
-    const detailSelectors = ['.top-fixes', '.fix-prompt', '.categories', '.pages-scanned', '.site-issues', '.competitor-cta', '.rescan'];
+    const detailSelectors = ['.top-fixes', '.categories', '.pages-scanned', '.site-issues', '.competitor-cta', '.rescan'];
     const hidden = [];
     detailSelectors.forEach((sel) => root.querySelectorAll(sel).forEach((n) => { n.style.display = 'none'; hidden.push(n); }));
 

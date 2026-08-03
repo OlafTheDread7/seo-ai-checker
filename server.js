@@ -20,6 +20,25 @@ async function scanOne(rawUrl) {
   return { url: finalUrl.href, report, html: page.body };
 }
 
+// Turn a failed/empty whole-site crawl into a specific, honest reason using how
+// the entered URL itself responded to our scanner.
+function emptyScanReason(target, startFetch) {
+  const host = target.hostname;
+  if (!startFetch) {
+    return 'No scannable HTML pages found at that address. Check the URL and try again.';
+  }
+  if (!startFetch.ok) {
+    return `Could not reach ${host}: ${startFetch.error}. The site may be down, too slow, or blocking automated requests.`;
+  }
+  if (startFetch.status >= 400) {
+    return `${host} returned HTTP ${startFetch.status} to the scanner — the site is likely blocking automated requests (a firewall or bot protection). It may still load fine for regular visitors.`;
+  }
+  if (!/text\/html/i.test(startFetch.contentType || '')) {
+    return `${host} returned "${startFetch.contentType || 'unknown content'}", not an HTML page, so there was nothing to scan.`;
+  }
+  return 'No scannable HTML pages found at that address. Check the URL and try again.';
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -130,7 +149,7 @@ app.get('/api/scan-site', heavyLimiter, async (req, res) => {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 
   try {
-    const { pageReports, origin, startUrl } = await crawlAndScan({
+    const { pageReports, origin, startUrl, startFetch } = await crawlAndScan({
       startUrl: target.href,
       maxPages: MAX_PAGES,
       concurrency: 5,
@@ -138,10 +157,7 @@ app.get('/api/scan-site', heavyLimiter, async (req, res) => {
     });
 
     if (!pageReports.length) {
-      send('failed', {
-        error:
-          'No scannable HTML pages found at that address. Check the URL and try again.',
-      });
+      send('failed', { error: emptyScanReason(target, startFetch) });
       return res.end();
     }
 

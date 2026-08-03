@@ -46,6 +46,29 @@ the plain fix prompt, it splits the work into **Priority 1: competitive gaps**
 competitor does, to emulate) and **Priority 2: your other issues**. So Claude
 doesn't just fix your site, it closes the gap on named competitors.
 
+## AI-visibility check (does AI actually recommend you?)
+
+Every check above measures *readiness* — what a crawler sees. The **AI visibility**
+button (on any report) measures the *outcome*: it derives the business's name,
+city, and service from the page, asks an AI answer engine a handful of real
+buyer-intent questions ("who are the best {service} in {city}?"), and reports
+whether the site gets **named or cited** — and which competitors show up instead.
+
+Because AI answers are non-deterministic, results are a frequency ("cited in 1 of
+3 searches"), never a fixed rank. It also asks one branded question to see if the
+engine recognizes the business by name at all.
+
+This feature needs a **Perplexity API key** (Perplexity's API returns explicit web
+citations, which is what makes the check verifiable). Set it via environment:
+
+```
+PERPLEXITY_API_KEY=pplx-xxxxxxxx      # required to enable the feature
+PERPLEXITY_MODEL=sonar                # optional, defaults to "sonar"
+```
+
+When the key is unset the button simply doesn't appear, and the rest of the tool
+runs exactly as before. Cost is a few cents per check (a handful of API calls).
+
 ## What it checks
 
 **🔍 SEO Fundamentals** — title tag, meta description, H1, heading structure,

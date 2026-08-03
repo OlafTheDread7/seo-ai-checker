@@ -263,6 +263,10 @@ function renderReport(data) {
     makeCompetitorCTA(data.finalUrl || data.url),
     rescanSingle
   );
+  // AI-visibility CTA (only appears if the server has a Perplexity key).
+  if (window.mountAiVisibilityCTA) {
+    window.mountAiVisibilityCTA(data.finalUrl || data.url, rescanSingle);
+  }
 
   // Rescan
   node.querySelector('#rescan-btn').addEventListener('click', () => {
@@ -484,6 +488,10 @@ function renderSiteReport(data) {
   // Competitor benchmark CTA
   const rescanSite = container.querySelector('.rescan');
   container.insertBefore(makeCompetitorCTA(data.origin), rescanSite);
+  // AI-visibility CTA (only appears if the server has a Perplexity key).
+  if (window.mountAiVisibilityCTA) {
+    window.mountAiVisibilityCTA(data.origin, rescanSite);
+  }
 
   // Rescan
   container.querySelector('#rescan-btn').addEventListener('click', () => {

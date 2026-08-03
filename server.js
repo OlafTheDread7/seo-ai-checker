@@ -5,6 +5,7 @@ import { fetchUrl, normalizeUrl } from './lib/fetcher.js';
 import { analyze, aggregateSite } from './lib/analyze.js';
 import { crawlAndScan } from './lib/crawl.js';
 import { discoverCompetitors } from './lib/competitors.js';
+import { runAiCitation } from './lib/ai-citation.js';
 
 const MAX_PAGES = 25;
 
@@ -48,6 +49,11 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC_MODE = /^(1|true|yes)$/i.test(process.env.PUBLIC_MODE || '');
 const WEB3FORMS_KEY = process.env.WEB3FORMS_KEY || '';
 
+// AI-citation check requires a Perplexity API key. When unset, the feature is
+// simply hidden in the UI and the endpoint returns a clear "not configured".
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
+const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'sonar';
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -84,7 +90,11 @@ const heavyLimiter = rateLimiter({ windowMs: 60 * 60 * 1000, max: 4 }); // 4 sit
 // client-side (server-side POSTs are blocked on the free plan). The key is a
 // public form key by design — safe to expose.
 app.get('/api/config', (req, res) => {
-  res.json({ publicMode: PUBLIC_MODE, web3formsKey: PUBLIC_MODE ? WEB3FORMS_KEY : '' });
+  res.json({
+    publicMode: PUBLIC_MODE,
+    web3formsKey: PUBLIC_MODE ? WEB3FORMS_KEY : '',
+    aiCitation: !!PERPLEXITY_API_KEY,
+  });
 });
 
 // Lightweight server-side log of captured leads (the actual email is sent from
@@ -267,6 +277,70 @@ app.get('/api/competitors', heavyLimiter, async (req, res) => {
   } catch (err) {
     console.error('Competitor scan failed:', err);
     send('failed', { error: 'Competitor analysis failed unexpectedly.' });
+    res.end();
+  }
+});
+
+// AI-citation check. Asks an AI answer engine (Perplexity) a few buyer-intent
+// questions about the site's category/location and reports whether the site
+// gets named or cited — and who does instead. Streams progress via SSE.
+app.get('/api/ai-citation', heavyLimiter, async (req, res) => {
+  let target;
+  try {
+    target = normalizeUrl(req.query.url);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+  const send = (event, data) =>
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+  if (!PERPLEXITY_API_KEY) {
+    send('failed', {
+      error:
+        'The AI-visibility check is not configured on this server (no Perplexity API key). ' +
+        'Add PERPLEXITY_API_KEY to enable it.',
+    });
+    return res.end();
+  }
+
+  try {
+    send('status', { message: 'Reading the page…' });
+    const page = await fetchUrl(target.href);
+    if (!page.ok || page.status >= 400 || !/text\/html/i.test(page.contentType || '')) {
+      const why = !page.ok
+        ? `couldn't reach it (${page.error})`
+        : page.status >= 400
+        ? `it returned HTTP ${page.status}`
+        : `it returned "${page.contentType || 'unknown content'}", not HTML`;
+      send('failed', { error: `Could not read ${target.hostname} — ${why}.` });
+      return res.end();
+    }
+
+    const finalUrl = new URL(page.finalUrl);
+    const report = await runAiCitation({
+      finalUrl,
+      html: page.body,
+      apiKey: PERPLEXITY_API_KEY,
+      model: PERPLEXITY_MODEL,
+      onProgress: (p) => {
+        const msg = p.prompt
+          ? `Asking AI (${p.done + 1} of ${p.total}): “${p.prompt.slice(0, 60)}${p.prompt.length > 60 ? '…' : ''}”`
+          : 'Summarizing…';
+        send('status', { message: msg, done: p.done, total: p.total });
+      },
+    });
+
+    send('done', report);
+    res.end();
+  } catch (err) {
+    console.error('AI-citation failed:', err);
+    send('failed', { error: 'AI-visibility check failed unexpectedly.' });
     res.end();
   }
 });

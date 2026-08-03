@@ -52,7 +52,7 @@ const WEB3FORMS_KEY = process.env.WEB3FORMS_KEY || '';
 // AI-citation check requires a Perplexity API key. When unset, the feature is
 // simply hidden in the UI and the endpoint returns a clear "not configured".
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
-const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'sonar';
+const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'perplexity/sonar';
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));

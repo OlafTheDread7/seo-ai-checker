@@ -58,12 +58,13 @@ Because AI answers are non-deterministic, results are a frequency ("cited in 1 o
 3 searches"), never a fixed rank. It also asks one branded question to see if the
 engine recognizes the business by name at all.
 
-This feature needs a **Perplexity API key** (Perplexity's API returns explicit web
-citations, which is what makes the check verifiable). Set it via environment:
+This feature uses Perplexity's **Agent API** (`/v1/agent`) — it returns a
+web-grounded answer *with* the sources it grounded on in one call, which is what
+makes the check verifiable. Set it via environment:
 
 ```
 PERPLEXITY_API_KEY=pplx-xxxxxxxx      # required to enable the feature
-PERPLEXITY_MODEL=sonar                # optional, defaults to "sonar"
+PERPLEXITY_MODEL=perplexity/sonar     # optional, defaults to "perplexity/sonar"
 ```
 
 When the key is unset the button simply doesn't appear, and the rest of the tool

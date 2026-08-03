@@ -93,7 +93,10 @@ app.get('/api/config', (req, res) => {
   res.json({
     publicMode: PUBLIC_MODE,
     web3formsKey: PUBLIC_MODE ? WEB3FORMS_KEY : '',
-    aiCitation: !!PERPLEXITY_API_KEY,
+    // The AI-visibility check spends Perplexity credits, so it's internal-only:
+    // available when a key is set AND we're not in public mode. On the public
+    // (Railway) instance this is false, so the UI hides the button.
+    aiCitation: !!PERPLEXITY_API_KEY && !PUBLIC_MODE,
   });
 });
 
@@ -299,6 +302,16 @@ app.get('/api/ai-citation', heavyLimiter, async (req, res) => {
 
   const send = (event, data) =>
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+
+  // The AI-visibility check spends real Perplexity credits, so it is disabled on
+  // the public instance entirely — not just rate-limited. It runs only on the
+  // internal/local tool (PUBLIC_MODE off).
+  if (PUBLIC_MODE) {
+    send('failed', {
+      error: 'The AI-visibility check is not available on the public tool.',
+    });
+    return res.end();
+  }
 
   if (!PERPLEXITY_API_KEY) {
     send('failed', {

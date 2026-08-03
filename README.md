@@ -70,6 +70,11 @@ PERPLEXITY_MODEL=perplexity/sonar     # optional, defaults to "perplexity/sonar"
 When the key is unset the button simply doesn't appear, and the rest of the tool
 runs exactly as before. Cost is a few cents per check (a handful of API calls).
 
+**This feature is internal-only.** Because each run spends Perplexity credits, it
+is disabled whenever `PUBLIC_MODE` is on: the public (Railway) instance hides the
+button *and* the `/api/ai-citation` endpoint refuses the request outright, so a
+stranger can't run up your bill. Use it on your local/ungated instance.
+
 ## What it checks
 
 **🔍 SEO Fundamentals** — title tag, meta description, H1, heading structure,

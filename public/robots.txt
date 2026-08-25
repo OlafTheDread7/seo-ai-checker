@@ -1,0 +1,33 @@
+# Search Visibility Checker - RVA Digital Works
+# This tool is meant to be found and cited. Crawlers welcome.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Named explicitly so there is no ambiguity about AI access.
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+
+Sitemap: https://tools.rvadigitalworks.com/sitemap.xml

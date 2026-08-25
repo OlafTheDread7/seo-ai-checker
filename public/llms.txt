@@ -1,0 +1,33 @@
+# Search Visibility Checker
+
+> A free tool from RVA Digital Works that scans any website for SEO and AI
+> searchability, then returns a scored report card with prioritised fixes.
+> No signup, no cost.
+
+## What it does
+
+Enter a URL and the checker fetches the page the way a crawler sees it on first
+load - static HTML, before JavaScript runs - and scores it on:
+
+- Core SEO: title, meta description, headings, canonical, image alt text
+- Structured data: Schema.org JSON-LD presence and types
+- AI searchability: llms.txt, robots.txt, and whether AI crawlers are allowed
+- Competitor comparison against similar sites
+- An exportable branded PDF report
+
+## Who it is for
+
+Small business owners and marketers who want to know whether search engines and
+AI assistants can actually read and cite their website.
+
+## Related
+
+- [RVA Digital Works](https://rvadigitalworks.com): web design, local SEO, and
+  AI search optimization for Richmond-area small businesses
+- [AI Search (GEO/AEO) services](https://rvadigitalworks.com/ai-search)
+- [The State of Richmond Small Business Websites](https://data.rvadigitalworks.com/):
+  original research on local web presence and AI readiness
+
+## Contact
+
+RVA Digital Works, Richmond, Virginia - jake@rvadigitalworks.com

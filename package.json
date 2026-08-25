@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "start:local": "node --env-file=.env server.js",
+    "dev:local": "node --watch --env-file=.env server.js"
   },
   "engines": {
     "node": ">=20"

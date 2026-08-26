@@ -15,6 +15,13 @@ load - static HTML, before JavaScript runs - and scores it on:
 - Competitor comparison against similar sites
 - An exportable branded PDF report
 
+## Pages
+
+- [Checker](https://tools.rvadigitalworks.com/): paste a URL, get a scored report
+- [What we check and why](https://tools.rvadigitalworks.com/checks): every check
+  explained - what it means, why it matters for AI search, how to fix it, and
+  how often Richmond businesses miss it
+
 ## Who it is for
 
 Small business owners and marketers who want to know whether search engines and
@@ -26,7 +33,8 @@ AI assistants can actually read and cite their website.
   AI search optimization for Richmond-area small businesses
 - [AI Search (GEO/AEO) services](https://rvadigitalworks.com/ai-search)
 - [The State of Richmond Small Business Websites](https://data.rvadigitalworks.com/):
-  original research on local web presence and AI readiness
+  a random-sample study of 2,500 Richmond-area businesses. Source of the local
+  figures quoted on the checks page.
 
 ## Contact
 

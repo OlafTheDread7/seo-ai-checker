@@ -55,7 +55,9 @@ const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
 const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'perplexity/sonar';
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// extensions:['html'] serves /checks as public/checks.html, so the
+// content pages get clean URLs without a route each.
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
 
 // Lightweight in-memory rate limiter (per IP, sliding window). Protects server
 // cost and discourages abuse on the public instance. No external dependency.

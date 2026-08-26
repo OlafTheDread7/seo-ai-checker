@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>What the Search Visibility Checker looks at, and why · RVA Digital Works</title>
+    <meta name="description" content="Every check the Search Visibility Checker runs, what it means, why it matters for AI search, and how to fix it — with local data on how often Richmond businesses miss each one." />
+    <link rel="canonical" href="https://tools.rvadigitalworks.com/checks" />
+    <meta name="author" content="RVA Digital Works" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="RVA Digital Works" />
+    <meta property="og:title" content="What the Search Visibility Checker looks at, and why" />
+    <meta property="og:description" content="Every check explained: structured data, llms.txt, AI crawler access, answer-first content — plus how often Richmond businesses miss each one." />
+    <meta property="og:url" content="https://tools.rvadigitalworks.com/checks" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <style>
+      .doc { max-width: 780px; margin: 0 auto; padding: 0 20px 80px; }
+      .doc a { color: var(--accent); text-decoration: none;
+               border-bottom: 1px solid rgba(45,212,191,.35); }
+      .doc a:hover { border-bottom-color: var(--accent); }
+      .site-header .brand, .site-header .brand:visited { color: var(--text); }
+      .site-header .brand-name { color: var(--text); }
+      .cta-band a { border-bottom: none; }
+      .doc .lede { color: var(--muted); font-size: 1.08rem; line-height: 1.7; }
+      .doc h2 { font-family: 'Sora', sans-serif; font-size: 1.05rem; letter-spacing: .1em;
+                text-transform: uppercase; color: var(--accent); margin: 54px 0 18px; }
+      .chk { background: var(--card); border: 1px solid var(--line);
+             border-radius: var(--radius); padding: 26px 28px; margin-bottom: 18px; }
+      .chk h3 { font-family: 'Sora', sans-serif; font-size: 1.22rem; margin: 0 0 6px; color: var(--text); }
+      .chk .what { color: var(--text); margin: 0 0 14px; line-height: 1.65; }
+      .chk p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
+      .chk p:last-child { margin-bottom: 0; }
+      .chk .fix { border-left: 2px solid var(--accent); padding-left: 14px; }
+      .chk code { background: var(--card-2); padding: 2px 7px; border-radius: 6px;
+                  font-size: .9em; color: var(--text); }
+      .localstat { display: inline-flex; align-items: baseline; gap: 8px;
+                   background: rgba(45,212,191,.09); border: 1px solid rgba(45,212,191,.3);
+                   border-radius: 999px; padding: 6px 14px; margin-bottom: 14px;
+                   font-size: .88rem; color: var(--muted); }
+      .localstat b { color: var(--accent); font-family: 'Sora', sans-serif; font-size: 1rem; }
+      .doc .backlink { display: inline-block; margin: 30px 0 0; color: var(--accent);
+                       text-decoration: none; font-weight: 600; }
+      .doc .faq details { background: var(--card); border: 1px solid var(--line);
+                          border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; }
+      .doc .faq summary { cursor: pointer; font-family: 'Sora', sans-serif;
+                          font-weight: 600; color: var(--text); }
+      .doc .faq p { color: var(--muted); margin: 12px 0 0; line-height: 1.65; }
+      .cta-band { background: var(--card); border: 1px solid var(--line);
+                  border-radius: var(--radius); padding: 28px; margin-top: 46px; text-align: center; }
+      .cta-band a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    </style>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"What the Search Visibility Checker looks at, and why","description":"Every check the Search Visibility Checker runs, what it means, why it matters for AI search, and how to fix it.","author":{"@type":"Organization","name":"RVA Digital Works","url":"https://rvadigitalworks.com"},"publisher":{"@type":"Organization","name":"RVA Digital Works","url":"https://rvadigitalworks.com"},"mainEntityOfPage":"https://tools.rvadigitalworks.com/checks","about":"Search engine and AI assistant visibility for small business websites"}</script>
+      <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is this the same as SEO?", "acceptedAnswer": {"@type": "Answer", "text": "It overlaps, but it is not the same thing. Traditional SEO works to earn a position in a list of links. These checks are about whether a machine can read, understand and quote your page \u2014 which is what decides whether an AI assistant names you in an answer. Structured data, answer-first writing and crawler access matter far more for that than keywords and backlinks do."}}, {"@type": "Question", "name": "Will fixing these get me into ChatGPT's answers?", "acceptedAnswer": {"@type": "Answer", "text": "Nobody can promise that, and anyone who does is guessing. What these checks do is remove the reasons a machine would fail to understand or trust your page. That is a necessary condition, not a sufficient one."}}, {"@type": "Question", "name": "Do I need llms.txt?", "acceptedAnswer": {"@type": "Answer", "text": "Not urgently. It is a young convention with no proven ranking effect. It is cheap to add, it removes ambiguity about what your business does, and 73.7% of Richmond business sites do not have one \u2014 so it is one of the few places where being early costs almost nothing."}}, {"@type": "Question", "name": "How often should I re-check?", "acceptedAnswer": {"@type": "Answer", "text": "After any redesign, host migration or CMS update, and once a quarter otherwise. Most of these break silently \u2014 a plugin update rewrites robots.txt, a certificate lapses, a theme change drops the schema block. Nothing tells you."}}, {"@type": "Question", "name": "Where do the Richmond figures come from?", "acceptedAnswer": {"@type": "Answer", "text": "A random sample of 2,500 active registered businesses across Richmond, Henrico, Chesterfield and Hanover, audited in August 2026. The methodology, confidence intervals and full dataset are published openly."}}]}</script>
+  </head>
+  <body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <header class="site-header">
+      <a class="brand" href="/" style="text-decoration:none">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" width="34" height="34">
+            <rect x="1" y="1" width="38" height="38" rx="9" fill="#14b8a6" />
+            <path d="M11 24 L20 13 L29 24" fill="none" stroke="#0d1b2a"
+              stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="brand-name">RVA Digital Works</span>
+      </a>
+      <p class="tagline">What we check &mdash; and why each one matters</p>
+    </header>
+
+    <main class="doc">
+      <p class="lede">
+        The checker scores a page on the things search engines and AI assistants
+        actually read. This page explains every one of them: what it is, why it
+        matters, and how to fix it. Where a figure appears, it comes from our
+        <a href="https://data.rvadigitalworks.com/">random-sample study of 2,500
+        Richmond-area businesses</a> &mdash; so you can see how common each
+        problem really is locally.
+      </p>
+
+      <h2>Being readable by machines</h2>
+
+      <div class="chk">
+        <h3>Structured data (Schema.org)</h3>
+        <div class="localstat"><b>40.6%</b> of live Richmond business sites have none</div>
+        <p class="what">Structured data is a block of machine-readable facts about
+        your business — name, address, phone, hours, services — embedded in the
+        page as JSON-LD. Humans never see it; search engines and AI assistants
+        read it first.</p>
+        <p>Without it, a machine has to infer who you are from your prose, and it
+        often infers wrong or gives up. With it, there is no ambiguity about
+        which business the page is describing.</p>
+        <p class="fix"><strong>The fix:</strong> add a
+        <code>LocalBusiness</code> or <code>Organization</code> block to every
+        page, and a <code>Service</code> block on each service page. The details
+        must match your Google Business Profile exactly — a mismatch is worse
+        than nothing.</p>
+      </div>
+
+      <div class="chk">
+        <h3>llms.txt</h3>
+        <div class="localstat"><b>73.7%</b> of live Richmond business sites have none</div>
+        <p class="what">A plain text file at <code>/llms.txt</code> that tells AI
+        crawlers, in their own preferred format, what your site is and which
+        pages matter. It is the newest convention here and the least adopted.</p>
+        <p>It is not a ranking factor and nobody should claim it is. What it does
+        is remove guesswork: instead of an assistant assembling an impression of
+        your business from whatever it happened to crawl, you hand it a summary
+        you wrote.</p>
+        <p class="fix"><strong>The fix:</strong> a short Markdown file with your
+        business in one sentence, what you do, the pages worth reading, and how
+        to contact you. Ours is at
+        <a href="/llms.txt">tools.rvadigitalworks.com/llms.txt</a> if you want a
+        template.</p>
+      </div>
+
+      <div class="chk">
+        <h3>AI crawler access</h3>
+        <div class="localstat"><b>7.4%</b> of Richmond sites have no robots.txt at all</div>
+        <p class="what">ChatGPT, Claude, Perplexity and Google's AI features each
+        crawl with their own named bot — GPTBot, ClaudeBot, PerplexityBot,
+        Google-Extended. Your <code>robots.txt</code> decides whether they are
+        allowed in.</p>
+        <p>Plenty of sites block them by accident, usually because a plugin or a
+        host added a blanket rule. If a crawler cannot read your site, no amount
+        of good content will get you cited by the assistant behind it.</p>
+        <p class="fix"><strong>The fix:</strong> name the AI crawlers explicitly
+        in <code>robots.txt</code> and allow them. Blocking is a legitimate
+        choice — but it should be a choice, not an accident.</p>
+      </div>
+
+      <h2>Being quotable</h2>
+
+      <div class="chk">
+        <h3>Answer-first content</h3>
+        <p class="what">Whether your page answers the question it is about in the
+        first sentence or two, rather than building up to it.</p>
+        <p>AI assistants quote passages, not pages. A paragraph that states a
+        fact plainly can be lifted into an answer intact. A paragraph that opens
+        with "In today's competitive landscape..." cannot, because there is no
+        sentence in it worth quoting.</p>
+        <p class="fix"><strong>The fix:</strong> put the answer first, then the
+        context. If someone asks "how much does a kitchen remodel cost in
+        Richmond," the page should say what it costs before it says anything
+        else.</p>
+      </div>
+
+      <div class="chk">
+        <h3>Title and meta description</h3>
+        <p class="what">The title is the strongest single signal about what a page
+        is for. The meta description does not affect ranking, but it is often
+        what a person reads before deciding to click.</p>
+        <p>The common failure is a title that names the business but not the
+        service or the place — "Home | Smith Co" tells a machine nothing about
+        what Smith Co does or where.</p>
+        <p class="fix"><strong>The fix:</strong> service, then location, then
+        business name. "Kitchen Remodeling in Midlothian, VA | Smith Co" works
+        for both a person and a machine.</p>
+      </div>
+
+      <div class="chk">
+        <h3>Heading structure</h3>
+        <p class="what">One <code>h1</code> per page describing the page, with
+        <code>h2</code> and <code>h3</code> marking real sections beneath it.</p>
+        <p>Headings are how a machine segments your page into passages. When
+        headings are used for visual size rather than structure, the page reads
+        as one undifferentiated block and nothing in it can be quoted cleanly.</p>
+        <p class="fix"><strong>The fix:</strong> use headings for hierarchy and
+        CSS for size. Phrase them as the questions people actually ask.</p>
+      </div>
+
+      <h2>Being usable</h2>
+
+      <div class="chk">
+        <h3>Mobile rendering</h3>
+        <div class="localstat"><b>8.0%</b> of live Richmond sites have no mobile viewport</div>
+        <p class="what">Whether the page declares a viewport, which is what tells
+        a phone to render it at phone width instead of shrinking a desktop
+        layout down.</p>
+        <p>Most local searches happen on a phone. A site without this is not
+        merely ugly on mobile — it is close to unusable, and Google has indexed
+        the mobile version of pages first for years.</p>
+        <p class="fix"><strong>The fix:</strong> one line of HTML in the
+        <code>head</code>. If it is missing, that usually signals the site
+        predates responsive design and needs more than the one line.</p>
+      </div>
+
+      <div class="chk">
+        <h3>HTTPS</h3>
+        <div class="localstat"><b>9.3%</b> of live Richmond sites have no valid HTTPS</div>
+        <p class="what">Whether the site serves over a valid certificate rather
+        than plain HTTP or an expired cert.</p>
+        <p>Browsers show a "Not secure" warning next to the address, which costs
+        trust at exactly the wrong moment. Expired certificates are the more
+        common cause locally — someone set it up once and the renewal lapsed.</p>
+        <p class="fix"><strong>The fix:</strong> certificates are free through
+        Let's Encrypt and automatic on most modern hosts. If yours has expired,
+        the underlying problem is usually that nothing is monitoring it.</p>
+      </div>
+
+      <div class="chk">
+        <h3>Image alt text</h3>
+        <p class="what">Text describing what each image shows, read by screen
+        readers and by anything that cannot see the picture.</p>
+        <p>This is an accessibility requirement first and a search benefit
+        second. For a trade business it also happens to be where a lot of
+        specific, useful description lives — a photo captioned "brick patio,
+        Church Hill" says something a machine can use.</p>
+        <p class="fix"><strong>The fix:</strong> describe the image as you would
+        to someone on the phone. Leave <code>alt</code> empty for purely
+        decorative images rather than stuffing keywords into it.</p>
+      </div>
+
+      <div class="chk">
+        <h3>Canonical URL</h3>
+        <p class="what">A tag naming the single official address for a page, so
+        that the same content reachable several ways is not treated as several
+        competing pages.</p>
+        <p>Sites reachable at both <code>www</code> and non-<code>www</code>, or
+        with tracking parameters appended, can end up splitting their own
+        signals between duplicates.</p>
+        <p class="fix"><strong>The fix:</strong> set a self-referencing canonical
+        on every page and pick one hostname, redirecting the other to it.</p>
+      </div>
+
+      <h2>Common questions</h2>
+      <div class="faq">
+        <details>
+          <summary>Is this the same as SEO?</summary>
+          <p>It overlaps, but it is not the same thing. Traditional SEO works to
+          earn a position in a list of links. These checks are about whether a
+          machine can read, understand and quote your page — which is what
+          decides whether an AI assistant names you in an answer. Structured
+          data, answer-first writing and crawler access matter far more for that
+          than keywords and backlinks do.</p>
+        </details>
+        <details>
+          <summary>Will fixing these get me into ChatGPT's answers?</summary>
+          <p>Nobody can promise that, and anyone who does is guessing. What these
+          checks do is remove the reasons a machine would fail to understand or
+          trust your page. That is a necessary condition, not a sufficient one.</p>
+        </details>
+        <details>
+          <summary>Do I need llms.txt?</summary>
+          <p>Not urgently. It is a young convention with no proven ranking
+          effect. It is cheap to add, it removes ambiguity about what your
+          business does, and 73.7% of Richmond business sites do not have one —
+          so it is one of the few places where being early costs almost
+          nothing.</p>
+        </details>
+        <details>
+          <summary>How often should I re-check?</summary>
+          <p>After any redesign, host migration or CMS update, and once a quarter
+          otherwise. Most of these break silently — a plugin update rewrites
+          robots.txt, a certificate lapses, a theme change drops the schema
+          block. Nothing tells you.</p>
+        </details>
+        <details>
+          <summary>Where do the Richmond figures come from?</summary>
+          <p>A random sample of 2,500 active registered businesses across
+          Richmond, Henrico, Chesterfield and Hanover, audited in August 2026.
+          The methodology, confidence intervals and full dataset are
+          <a href="https://data.rvadigitalworks.com/">published openly</a>.</p>
+        </details>
+      </div>
+
+      <div class="cta-band">
+        <p style="margin:0 0 14px;color:var(--muted)">Run your own site through the checker &mdash; free, no signup.</p>
+        <a href="/">Check a site &rarr;</a>
+        &nbsp;·&nbsp;
+        <a href="https://data.rvadigitalworks.com/">Read the Richmond study &rarr;</a>
+      </div>
+
+      <a class="backlink" href="/">&larr; Back to the checker</a>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Static-HTML analysis &mdash; checks what a crawler sees on first load.
+        A tool by <a href="https://rvadigitalworks.com" target="_blank" rel="noopener">RVA Digital Works</a>.
+        Not affiliated with any search engine.
+      </p>
+    </footer>
+  </body>
+</html>

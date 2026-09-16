@@ -67,7 +67,7 @@
     const card = document.createElement('div');
     card.className = 'competitor-cta aiv-card';
     card.innerHTML = `
-      <h3>🤖 See if AI engines recommend you</h3>
+      <h3>See if AI engines recommend you</h3>
       <p>We'll ask an AI answer engine a few real buyer questions about your
         business and check whether it names or cites <b>you</b> — or your
         competitors instead.</p>
@@ -80,7 +80,7 @@
 
   function setBusy(card, msg) {
     card.innerHTML = `
-      <h3>🤖 Checking AI visibility…</h3>
+      <h3>Checking AI visibility…</h3>
       <p class="aiv-status">${esc(msg || 'Asking the AI…')}</p>`;
   }
 
@@ -126,7 +126,7 @@
 
   function renderError(card, url, msg) {
     card.innerHTML = `
-      <h3>🤖 AI visibility</h3>
+      <h3>AI visibility</h3>
       <div class="comp-error">${esc(msg)}</div>
       <div class="comp-input-row" style="margin-top:12px">
         <button class="compare-btn aiv-run" type="button">Try again</button>
@@ -142,7 +142,7 @@
     const idBits = [identity.service, identity.city].filter(Boolean).join(' · ');
 
     let html = `
-      <h3>🤖 AI visibility — how answer engines see you</h3>
+      <h3>AI visibility — how answer engines see you</h3>
       <p style="color:var(--muted,#8fa3b8);margin-bottom:14px">
         Engine: ${esc(data.engine || 'AI')}${idBits ? ' · Read as: <b>' + esc(idBits) + '</b>' : ''}
       </p>

@@ -91,7 +91,7 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   display: flex;
   align-items: center;
 }
-.input-icon { position: absolute; left: 16px; font-size: 16px; opacity: 0.7; }
+.input-icon { position: absolute; left: 16px; display: flex; align-items: center; opacity: 0.7; pointer-events: none; }
 #url {
   width: 100%;
   padding: 16px 16px 16px 44px;
@@ -378,7 +378,9 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   user-select: none;
 }
 .cat-header:hover { background: var(--card-2); }
-.cat-icon { font-size: 20px; }
+.cat-icon { display: inline-flex; align-items: center; color: var(--accent, #2dd4bf); }
+.cat-svg { flex: none; vertical-align: -3px; }
+.cat-bar-label .cat-svg, .cmp-legend .cat-svg { opacity: 0.85; }
 .cat-title { font-weight: 600; font-size: 16px; flex: 1; }
 .cat-score-badge {
   font-weight: 700;

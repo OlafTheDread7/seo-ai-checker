@@ -142,6 +142,19 @@ function showError(msg) {
 function statusClass(s) {
   return { pass: 'pass', warn: 'warn', fail: 'fail', info: 'info' }[s] || 'info';
 }
+// Inline stroke SVG icons (no emoji — Rule 10). Keys come from analyze.js categories.
+const CAT_SVG = {
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  ai: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M8 12h.01M16 12h.01M9 16h6"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+};
+function catIcon(key, size) {
+  const d = CAT_SVG[key] || CAT_SVG.search;
+  const px = size || 16;
+  return `<svg class="cat-svg" width="${px}" height="${px}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+}
+
 function statusGlyph(s) {
   return { pass: '✓', warn: '!', fail: '✕', info: 'i' }[s] || 'i';
 }
@@ -164,7 +177,7 @@ function renderReport(data) {
     const row = document.createElement('div');
     row.className = 'cat-bar-row';
     row.innerHTML = `
-      <div class="cat-bar-label">${cat.icon} ${cat.title}</div>
+      <div class="cat-bar-label">${catIcon(cat.icon)} ${cat.title}</div>
       <div class="cat-bar-track"><div class="cat-bar-fill"></div></div>
       <div class="cat-bar-val">${cat.score}</div>`;
     const fill = row.querySelector('.cat-bar-fill');
@@ -225,7 +238,7 @@ function renderReport(data) {
     const header = document.createElement('div');
     header.className = 'cat-header';
     header.innerHTML = `
-      <span class="cat-icon">${cat.icon}</span>
+      <span class="cat-icon">${catIcon(cat.icon, 20)}</span>
       <span class="cat-title">${cat.title}</span>
       <span class="cat-score-badge" style="background:${hexA(badgeColor, 0.16)};color:${badgeColor}">${cat.score}</span>
       <span class="cat-caret">▸</span>`;
@@ -357,14 +370,14 @@ function renderSiteReport(data) {
     </div>
 
     <div class="pages-scanned">
-      <h3>📄 Pages scanned (${data.pagesScanned})</h3>
+      <h3>Pages scanned (${data.pagesScanned})</h3>
       <div class="page-list"></div>
     </div>
 
     <div class="fix-prompt">
       <div class="fix-prompt-head">
         <div class="fix-prompt-title">
-          <h3>🛠️ Fix-it prompt for Claude</h3>
+          <h3>Fix-it prompt for Claude</h3>
           <span class="fix-prompt-count"></span>
         </div>
         <button class="copy-btn" type="button">Copy to clipboard</button>
@@ -382,7 +395,7 @@ function renderSiteReport(data) {
     </div>
 
     <div class="site-issues">
-      <h3>🧩 Issues across the site (${data.issues.length})</h3>
+      <h3>Issues across the site (${data.issues.length})</h3>
       <div class="issue-list"></div>
     </div>
 
@@ -396,7 +409,7 @@ function renderSiteReport(data) {
     const row = document.createElement('div');
     row.className = 'cat-bar-row';
     row.innerHTML = `
-      <div class="cat-bar-label">${cat.icon} ${escapeHtml(cat.title)}</div>
+      <div class="cat-bar-label">${catIcon(cat.icon)} ${escapeHtml(cat.title)}</div>
       <div class="cat-bar-track"><div class="cat-bar-fill"></div></div>
       <div class="cat-bar-val">${cat.score}</div>`;
     const fill = row.querySelector('.cat-bar-fill');
@@ -442,7 +455,7 @@ function renderSiteReport(data) {
   const issueList = container.querySelector('.issue-list');
   if (!hasIssues) {
     issueList.innerHTML =
-      '<p class="no-issues">🎉 No issues found on any scanned page — excellent!</p>';
+      '<p class="no-issues">No issues found on any scanned page — excellent.</p>';
   }
   data.issues.forEach((iss) => {
     const c = statusClass(iss.worst);
@@ -636,7 +649,7 @@ function makeCompetitorCTA(url) {
   const el = document.createElement('div');
   el.className = 'competitor-cta';
   el.innerHTML = `
-    <h3>🥊 Benchmark against competitors</h3>
+    <h3>Benchmark against competitors</h3>
     <p>See how your SEO &amp; AI searchability compares. We'll try to find
       competitors automatically — or enter their URLs to compare exactly who
       you choose.</p>
@@ -715,7 +728,7 @@ function renderCompetitorScreen({ url, data, error, prefill }) {
 
   container.innerHTML = `
     <div class="competitor-head">
-      <h2>🥊 Competitor benchmark</h2>
+      <h2>Competitor benchmark</h2>
       <p class="scanned-url">Your site: ${escapeHtml(url)}</p>
     </div>
     <div class="competitor-manual">
@@ -788,7 +801,7 @@ function buildComparison(data) {
     '<div class="cmp-row cmp-head">' +
     '<div class="cmp-site">Site</div>' +
     '<div class="cmp-cell">Overall</div>' +
-    catMeta.map((c) => `<div class="cmp-cell">${c.icon}</div>`).join('') +
+    catMeta.map((c) => `<div class="cmp-cell" title="${escapeHtml(c.title)}">${catIcon(c.icon)}</div>`).join('') +
     '</div>';
 
   const rows = sites
@@ -813,7 +826,7 @@ function buildComparison(data) {
     header +
     rows +
     `<div class="cmp-legend">Columns: Overall · ${catMeta
-      .map((c) => `${c.icon} ${escapeHtml(c.title)}`)
+      .map((c) => `${catIcon(c.icon, 13)} ${escapeHtml(c.title)}`)
       .join(' · ')}</div>`;
   frag.appendChild(table);
 
@@ -826,11 +839,11 @@ function buildComparison(data) {
   const rivalAvgOverall = avg(rivals.map((r) => r.overall));
   if (target.overall >= rivalAvgOverall) {
     takeaways.push(
-      `✅ Your overall score (${target.overall}) beats the competitor average (${rivalAvgOverall}).`
+      `Your overall score (${target.overall}) beats the competitor average (${rivalAvgOverall}).`
     );
   } else {
     takeaways.push(
-      `⚠️ Your overall score (${target.overall}) trails the competitor average (${rivalAvgOverall}) by ${rivalAvgOverall - target.overall}.`
+      `Your overall score (${target.overall}) trails the competitor average (${rivalAvgOverall}) by ${rivalAvgOverall - target.overall}.`
     );
   }
 
@@ -839,7 +852,7 @@ function buildComparison(data) {
     const t = catScore(target, c.key);
     if (t < rAvg - 4) {
       takeaways.push(
-        `⚠️ ${c.icon} ${c.title}: you score ${t} vs competitor average ${rAvg}.`
+        `${c.title}: you score ${t} vs competitor average ${rAvg}.`
       );
     }
   });
@@ -867,11 +880,11 @@ function buildComparison(data) {
   const insights = document.createElement('div');
   insights.className = 'takeaways';
   insights.innerHTML =
-    '<h3>📊 Takeaways</h3><ul class="takeaway-list">' +
+    '<h3>Takeaways</h3><ul class="takeaway-list">' +
     takeawayHtml +
     '</ul>' +
     (opps.length
-      ? '<h3>🎯 What competitors do that you don\'t</h3><ul class="opp-list">' +
+      ? '<h3>What competitors do that you don\'t</h3><ul class="opp-list">' +
         oppHtml +
         '</ul>'
       : '');
@@ -884,7 +897,7 @@ function buildComparison(data) {
   card.innerHTML = `
     <div class="fix-prompt-head">
       <div class="fix-prompt-title">
-        <h3>🛠️ Competitor-aware fix prompt</h3>
+        <h3>Competitor-aware fix prompt</h3>
         <span class="fix-prompt-count"></span>
       </div>
       <button class="copy-btn" type="button">Copy to clipboard</button>
@@ -973,7 +986,7 @@ function buildCompetitorFixPrompt(data, includePassing = false) {
   let n = 0;
   L.push('');
   L.push('== PRIORITY 1: Competitive gaps (competitors do this, my site does not) ==');
-  if (!gaps.length) L.push('None — my site already matches competitors on every check they pass. 🎉');
+  if (!gaps.length) L.push('None — my site already matches competitors on every check they pass.');
   for (const g of gaps) {
     n++;
     const pr = g.status === 'fail' ? 'High' : 'Medium';
@@ -1115,7 +1128,7 @@ async function copyText(text, btn) {
   const done = () => {
     const original = btn.dataset.label || btn.textContent;
     btn.dataset.label = original;
-    btn.textContent = '✓ Copied!';
+    btn.textContent = 'Copied';
     btn.classList.add('copied');
     setTimeout(() => {
       btn.textContent = btn.dataset.label;

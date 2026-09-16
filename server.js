@@ -54,6 +54,31 @@ const WEB3FORMS_KEY = process.env.WEB3FORMS_KEY || '';
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
 const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || 'perplexity/sonar';
 
+// Security headers (no extra dependency). CSP allowlists exactly what the
+// front-end loads: cdnjs (jsPDF), Google Fonts, Web3Forms, and same-origin SSE.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https://api.web3forms.com",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://api.web3forms.com",
+  "object-src 'none'",
+  'upgrade-insecure-requests',
+].join('; ');
+app.use((req, res, next) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.setHeader('Content-Security-Policy', CSP);
+  next();
+});
+
 app.use(express.json());
 // extensions:['html'] serves /checks as public/checks.html, so the
 // content pages get clean URLs without a route each.

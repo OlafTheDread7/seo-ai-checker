@@ -25,7 +25,10 @@
   // them from the single-page report, the whole-site report, AND the competitor
   // view (which builds its own), now and whenever new results render.
   function stripPaidFeatures() {
-    const strip = (el) => el && el.querySelectorAll('.fix-prompt, .pdf-cta').forEach((n) => n.remove());
+    // Quiz leads (arrived via rvadigitalworks.com's lead quiz, contact already
+    // captured) earn the branded PDF; anonymous visitors still don't. The
+    // Claude fix-prompt stays a paid feature for everyone.
+    const strip = (el) => el && el.querySelectorAll(window.__QUIZ_LEAD ? '.fix-prompt' : '.fix-prompt, .pdf-cta').forEach((n) => n.remove());
     const results = document.getElementById('results');
     if (!results) {
       document.addEventListener('DOMContentLoaded', stripPaidFeatures, { once: true });
@@ -57,14 +60,18 @@
 
     if (key) {
       try {
+        const isQuiz = payload.source === 'quiz';
         await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({
             access_key: key,
-            subject: `New Search Visibility lead — ${payload.email}`,
+            subject: isQuiz
+              ? `Quiz lead scan result — ${payload.url || '(unknown site)'}`
+              : `New Search Visibility lead — ${payload.email}`,
             from_name: 'RVA Digital Works — Search Visibility Tool',
-            email: payload.email,
+            email: payload.email || (isQuiz ? '(see matching quiz lead email for this site)' : ''),
+            source: isQuiz ? 'Lead quiz (rvadigitalworks.com)' : 'Search Visibility tool',
             scanned_site: payload.url || '(unknown)',
             scan_type: payload.scanType || 'single',
             score: payload.score != null ? `${payload.score}/100 (grade ${payload.grade || '?'})` : 'n/a',
@@ -101,6 +108,16 @@
     if (!window.PUBLIC_MODE) {
       if (window.mountReportPdf) window.mountReportPdf(type, data);
       appendCta();
+      return;
+    }
+
+    // Quiz lead: contact was already captured by the quiz, so no email gate.
+    // Reveal everything, mount the branded PDF, and send a score record keyed
+    // to the scanned URL so it can be matched to the quiz lead email.
+    if (window.__QUIZ_LEAD) {
+      if (window.mountReportPdf) window.mountReportPdf(type, data);
+      appendCta();
+      postLead({ source: 'quiz', url: scannedUrl(type, data), scanType: type, score: data.overall, grade: data.grade });
       return;
     }
 
@@ -169,6 +186,8 @@
   // Returns a promise resolving true (proceed) or false (cancelled).
   window.requireLeadEmail = function ({ url, scanType }) {
     if (!window.PUBLIC_MODE) return Promise.resolve(true);
+    // Quiz leads already gave their contact in the quiz — never re-gate them.
+    if (window.__QUIZ_LEAD) return Promise.resolve(true);
     return new Promise((resolve) => {
       const ov = document.createElement('div');
       ov.className = 'modal-overlay';

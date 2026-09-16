@@ -179,7 +179,7 @@ function renderReport(data) {
   const fixesList = node.querySelector('.fixes-list');
   const topFixes = node.querySelector('.top-fixes');
   if (data.topFixes.length === 0) {
-    topFixes.querySelector('h3').textContent = '🎉 No major issues found — nice work!';
+    topFixes.querySelector('h3').textContent = 'No major issues found — nice work.';
     fixesList.remove();
   } else {
     data.topFixes.forEach((fix) => {
@@ -1161,3 +1161,25 @@ function hexA(hex, alpha) {
   const b = parseInt(h.slice(4, 6), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
+
+// ---- Quiz handoff ----------------------------------------------------------
+// rvadigitalworks.com's lead quiz deep-links here as ?url=<site>&src=quiz once
+// the lead has already been captured (name/email/phone/answers went out via the
+// quiz's own Web3Forms submission). We auto-run a single-page scan and, when
+// src=quiz, public-gate.js treats the report as already unlocked and keeps the
+// branded PDF available. No personal data rides in the URL on purpose.
+(function quizHandoff() {
+  try {
+    const p = new URLSearchParams(location.search);
+    const u = (p.get('url') || '').trim();
+    if (p.get('src') === 'quiz') window.__QUIZ_LEAD = { source: 'quiz' };
+    if (!u) return;
+    urlInput.value = u;
+    // Quiz payoff is the instant single-page report; the whole-site crawl is
+    // the heavy, gated path and would re-prompt for an email.
+    if (wholeSiteInput) wholeSiteInput.checked = false;
+    const go = () => (form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true })));
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go, { once: true });
+    else go();
+  } catch (e) { /* never block the tool over a bad param */ }
+})();
